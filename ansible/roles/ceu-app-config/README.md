@@ -1,10 +1,4 @@
-# Ansible Role: ewf-app-config
+# Ansible Role: ceu-app-config
 
-Configure tasks specific to EWF:
-
-http modules:
-mod_cookietrack.so
-mod_apreq2.so
-
-Start and enable httpd
-
+Installs dependencies for EWF application
+Sets-up users for CEU back-end use
