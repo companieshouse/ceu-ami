@@ -7,6 +7,7 @@
     vars:
       ansible_python_interpreter: /usr/local/bin/python3.6
       application_name: "ewf-backend"
+      application_config_name: "ceu-backend"
       home_dir: "/home/ceu"
       directories:
         - "DATA" 
@@ -17,7 +18,6 @@
         - "conf"
       config_files:
         - "BEP"
-        - "EWF"
     roles:
 #      - { role: /root/roles/nfs_mounts }
       - name: ch_collections.base.cloudwatch_agent_config
@@ -73,7 +73,7 @@
       - name: Download environment config files from S3
         aws_s3:
           bucket: "{{ s3_bucket_configs }}"
-          object: "chl-{{ application_name }}-configs/{{ heritage_environment }}/{{ item | upper }}Config.pm"
+          object: "chl-{{ application_config_name }}-configs/{{ heritage_environment }}/{{ item | upper }}Config.pm"
           dest: "{{ home_dir }}/config/My/{{ item | upper }}Config.pm"
           mode: get
         loop: "{{ config_files }}"
