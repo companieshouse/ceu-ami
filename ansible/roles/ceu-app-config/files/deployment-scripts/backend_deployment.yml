@@ -19,7 +19,7 @@
       config_files:
         - "BEP"
     roles:
-#      - { role: /root/roles/nfs_mounts }
+      - { role: /root/roles/nfs_mounts }
       - name: ch_collections.base.cloudwatch_agent_config
         when: cw_log_files is defined
     tasks:
