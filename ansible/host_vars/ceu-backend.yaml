@@ -9,7 +9,7 @@ users:
     group: chlservices
     gid: 600
     
-user_home_path: /home/ceu
+app_user_home_path: /home/ceu
 
 s3_file_perl_lib: /application/shared/libraries/perl-xerces-lib.tar.gz
 s3_file_perl_lib_name: '{{ s3_file_perl_lib | basename }}'
