@@ -18,6 +18,13 @@
         - "conf"
       config_files:
         - "BEP"
+      cups_config_files:
+        - "cupsd"
+        - "printers"
+      cups_printer_descs:
+        - "avpcovlive"
+        - "avpinplive"
+        - "ccopies"
     roles:
       - { role: /root/roles/nfs_mounts }
       - name: ch_collections.base.cloudwatch_agent_config
@@ -99,3 +106,35 @@
           name: "httpd"
           state: stopped
           enabled: no
+
+      - name: Download CUPS configuration files
+        aws_s3:
+          bucket: "{{ s3_bucket_configs }}"
+          object: "chl-{{ application_config_name }}-configs/{{ heritage_environment }}/cups/{{ item }}.conf"
+          dest: "/etc/cups/{{ item }}.conf"
+          mode: get
+        loop: "{{ cups_config_files }}"
+
+      - name: Set CUPS configuration file ownership and permissions
+        ansible.builtin.file:
+          path: "/etc/cups/{{ item }}.conf"
+          owner: root
+          group: lp
+          mode: 0640
+        loop: "{{ cups_config_files }}"
+
+      - name: Download CUPS printer descriptions
+        aws_s3:
+          bucket: "{{ s3_bucket_configs }}"
+          object: "chl-{{ application_config_name }}-configs/{{ heritage_environment }}/cups/{{ item }}.ppd"
+          dest: "/etc/cups/ppd/{{ item }}.ppd"
+          mode: get
+        loop: "{{ cups_printer_descs }}"
+
+      - name: Set CUPS printer description ownership and permissions
+        ansible.builtin.file:
+          path: "/etc/cups/ppd/{{ item }}.ppd"
+          owner: root
+          group: root
+          mode: 0644
+        loop: "{{ cups_printer_descs }}"
