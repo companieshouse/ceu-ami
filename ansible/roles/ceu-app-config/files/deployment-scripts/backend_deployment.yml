@@ -60,14 +60,17 @@
           remote_src: yes
         loop: "{{ directories }}"
       
-      - name: Make sure config directory exists
+      - name: Make sure config and scratch directories exist
         file:
-          path: "{{ home_dir }}/config/My"
+          path: "{{ home_dir }}/{{ item.dir }}"
           owner: "{{ home_dir | basename }}"
           group: chlservices
           state: directory
           recurse: yes
-          mode: '755'
+          mode: "{{ item.mode }}"
+        loop:
+          - { dir: "config/My", mode: "0775" }
+          - { dir: "tmp/scratch", mode: "2775" }
 
       - name: Symlinking "My::" to modules
         ansible.builtin.file:
