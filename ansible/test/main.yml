@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     inventory:
-      - name: ceu-backend
+      - name: ceu
         image: "centos:centos6.10"
         # The network setting allows for idempotent testing.
         # without it the role creates a brand new container, with it the container is re-used.
@@ -16,7 +16,7 @@
       provision_docker_inventory: "{{ inventory }}"
       provision_docker_privileged: True
 
-- hosts: ceu-backend
+- hosts: ceu
   become: true
   collections:
     - ch_collections.enterpriselinux6

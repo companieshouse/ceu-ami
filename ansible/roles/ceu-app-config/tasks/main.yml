@@ -1,4 +1,11 @@
 ---
+- name: Install any additional yum packages
+  vars:
+    ansible_python_interpreter: /usr/bin/python2.6
+  yum:
+     name: "{{ additional_yum_packages }}"
+     state: present
+
 - name: Download app library archive from s3
   aws_s3:
     bucket: '{{ s3_bucket }}'
@@ -42,9 +49,9 @@
     mode: 0755
   loop:
     - etc/httpd/conf/httpd.conf.j2
-    - etc/httpd/conf/ewf_startup.pl
-    - etc/httpd/conf.d/ewf_perl.conf.j2
-
+    - etc/httpd/conf/ceu_startup.pl
+    - etc/httpd/conf.d/perl.conf
+    
 - name: Update Postfix configuration for mail relay (existing commented lines)
   lineinfile:
     dest: "/etc/postfix/{{ postfix_main_config_file }}"
@@ -69,6 +76,7 @@
     mode: 0755
   loop:
     - deployment-scripts/backend_deployment.yml
+    - deployment-scripts/frontend_deployment.yml
 
 - name: Setup deployment playbook dependancies (1/2)
   vars:

@@ -1,10 +1,11 @@
 #
-# Based upon the NCSA server configuration files originally by Rob McCool.
-#
 # This is the main Apache server configuration file.  It contains the
 # configuration directives that give the server its instructions.
-# See <URL:http://httpd.apache.org/docs-2.0/> for detailed information about
-# the directives.
+# See <URL:http://httpd.apache.org/docs/2.2/> for detailed information.
+# In particular, see
+# <URL:http://httpd.apache.org/docs/2.2/mod/directives.html>
+# for a discussion of each configuration directive.
+#
 #
 # Do NOT simply read the instructions in here without understanding
 # what they do.  They're here only as hints or reminders.  If you are unsure
@@ -30,7 +31,6 @@
 #
 
 ### Section 1: Global Environment
-
 #
 # The directives in this section affect the overall operation of Apache,
 # such as the number of concurrent requests it can handle or where it
@@ -49,7 +49,7 @@ ServerTokens Prod
 #
 # NOTE!  If you intend to place this on an NFS (or otherwise network)
 # mounted filesystem then please read the LockFile documentation
-# (available at <URL:http://httpd.apache.org/docs-2.0/mod/core.html#lockfile>);
+# (available at <URL:http://httpd.apache.org/docs/2.2/mod/mpm_common.html#lockfile>);
 # you will save yourself a lot of trouble.
 #
 # Do NOT add a slash at the end of the directory path.
@@ -57,25 +57,17 @@ ServerTokens Prod
 ServerRoot "/etc/httpd"
 
 #
-# ScoreBoardFile: File used to store internal server process information.
-# If unspecified (the default), the scoreboard will be stored in an
-# anonymous shared memory segment, and will be unavailable to third-party
-# applications.
-# If specified, ensure that no two invocations of Apache share the same
-# scoreboard file. The scoreboard file MUST BE STORED ON A LOCAL DISK.
-#
-#ScoreBoardFile run/httpd.scoreboard
-
-#
 # PidFile: The file in which the server should record its process
-# identification number when it starts.
+# identification number when it starts.  Note the PIDFILE variable in
+# /etc/sysconfig/httpd must be set appropriately if this location is
+# changed.
 #
 PidFile run/httpd.pid
 
 #
 # Timeout: The number of seconds before receives and sends time out.
 #
-Timeout 120
+Timeout 60
 
 #
 # KeepAlive: Whether or not to allow persistent connections (more than
@@ -104,14 +96,16 @@ KeepAliveTimeout 15
 # StartServers: number of server processes to start
 # MinSpareServers: minimum number of server processes which are kept spare
 # MaxSpareServers: maximum number of server processes which are kept spare
+# ServerLimit: maximum value for MaxClients for the lifetime of the server
 # MaxClients: maximum number of server processes allowed to start
 # MaxRequestsPerChild: maximum number of requests a server process serves
 <IfModule prefork.c>
-StartServers      5 
-MinSpareServers   5
+StartServers       8
+MinSpareServers    5
 MaxSpareServers   20
-MaxClients        85
-MaxRequestsPerChild  100
+ServerLimit      256
+MaxClients       256
+MaxRequestsPerChild  4000
 </IfModule>
 
 # worker MPM
@@ -121,22 +115,14 @@ MaxRequestsPerChild  100
 # MaxSpareThreads: maximum number of worker threads which are kept spare
 # ThreadsPerChild: constant number of worker threads in each server process
 # MaxRequestsPerChild: maximum number of requests a server process serves
-#<IfModule worker.c>
-#StartServers         2
-#MaxClients         150
-#MinSpareThreads      2
-#MaxSpareThreads      5 
-#ThreadsPerChild      5
-#MaxRequestsPerChild  20
-
-#
-# To reduce memory usage in the worker MPM, the thread guard page
-# can be disabled, at the expense of some protection against stack
-# overflow.
-#
-#ThreadGuardArea off
-
-#</IfModule>
+<IfModule worker.c>
+StartServers         4
+MaxClients         300
+MinSpareThreads     25
+MaxSpareThreads     75 
+ThreadsPerChild     25
+MaxRequestsPerChild  0
+</IfModule>
 
 #
 # Listen: Allows you to bind Apache to specific IP addresses and/or
@@ -145,12 +131,9 @@ MaxRequestsPerChild  100
 #
 # Change this to Listen on specific IP addresses as shown below to 
 # prevent Apache from glomming onto all bound IP addresses (0.0.0.0)
-# e.g. "Listen 12.34.56.78:80"
 #
-# To allow connections to IPv6 addresses add "Listen [::]:80"
-#
-#Listen 192.168.60.151:80
-Listen 0.0.0.0:80
+#Listen 12.34.56.78:80
+Listen 80
 
 #
 # Dynamic Shared Object (DSO) Support
@@ -188,8 +171,7 @@ LoadModule mime_magic_module modules/mod_mime_magic.so
 LoadModule expires_module modules/mod_expires.so
 LoadModule deflate_module modules/mod_deflate.so
 LoadModule headers_module modules/mod_headers.so
-LoadModule cookietrack_module modules/mod_cookietrack.so
-#LoadModule usertrack_module modules/mod_usertrack.so
+LoadModule usertrack_module modules/mod_usertrack.so
 LoadModule setenvif_module modules/mod_setenvif.so
 LoadModule mime_module modules/mod_mime.so
 LoadModule dav_module modules/mod_dav.so
@@ -217,8 +199,10 @@ LoadModule suexec_module modules/mod_suexec.so
 LoadModule disk_cache_module modules/mod_disk_cache.so
 LoadModule cgi_module modules/mod_cgi.so
 LoadModule version_module modules/mod_version.so
-LoadModule apreq_module modules/mod_apreq2.so
 
+#
+# The following modules are not loaded by default:
+#
 #LoadModule asis_module modules/mod_asis.so
 #LoadModule authn_dbd_module modules/mod_authn_dbd.so
 #LoadModule cern_meta_module modules/mod_cern_meta.so
@@ -229,14 +213,13 @@ LoadModule apreq_module modules/mod_apreq2.so
 #LoadModule ident_module modules/mod_ident.so
 #LoadModule log_forensic_module modules/mod_log_forensic.so
 #LoadModule unique_id_module modules/mod_unique_id.so
+#
 
 #
 # Load config files from the config directory "/etc/httpd/conf.d".
 #
-
-#Include conf.d/ssl.conf
-Include conf.d/ewf_perl.conf
-PerlCleanupHandler Apache2::SizeLimit
+Include conf.d/ceu_perl.conf
+# Include conf.d/ssl.conf
 
 #
 # ExtendedStatus controls whether Apache will generate "full" status
@@ -244,18 +227,6 @@ PerlCleanupHandler Apache2::SizeLimit
 # Off) when the "server-status" handler is called. The default is Off.
 #
 ExtendedStatus On
-
-### Section 2: 'Main' server configuration
-#
-# The directives in this section set up the values used by the 'main'
-# server, which responds to any requests that aren't handled by a
-# <VirtualHost> definition.  These values also provide defaults for
-# any <VirtualHost> containers you may define later in the file.
-#
-# All of these directives may appear inside <VirtualHost> containers,
-# in which case these default settings will be overridden for the
-# virtual host being defined.
-#
 
 #
 # If you wish httpd to run as a different user or group, you must run
@@ -272,12 +243,24 @@ ExtendedStatus On
 User ceu
 Group chlservices
 
+### Section 2: 'Main' server configuration
+#
+# The directives in this section set up the values used by the 'main'
+# server, which responds to any requests that aren't handled by a
+# <VirtualHost> definition.  These values also provide defaults for
+# any <VirtualHost> containers you may define later in the file.
+#
+# All of these directives may appear inside <VirtualHost> containers,
+# in which case these default settings will be overridden for the
+# virtual host being defined.
+#
+
 #
 # ServerAdmin: Your address, where problems with the server should be
 # e-mailed.  This address appears on some server-generated pages, such
 # as error documents.  e.g. admin@your-domain.com
 #
-ServerAdmin enquiries@{{ domain_name }}
+ServerAdmin webmaster@{{ domain_name }}
 
 #
 # ServerName gives the name and port that the server uses to identify itself.
@@ -307,7 +290,6 @@ UseCanonicalName Off
 # documents. By default, all requests are taken from this directory, but
 # symbolic links and aliases may be used to point to other locations.
 #
-DocumentRoot "/home/ceu/htdocs/efiling/"
 
 #
 # Each directory to which Apache has access can be configured with respect
@@ -317,12 +299,11 @@ DocumentRoot "/home/ceu/htdocs/efiling/"
 # First, we configure the "default" to be a very restrictive set of 
 # features.  
 #
-<Directory />
-    Options FollowSymLinks
-    AllowOverride None
-</Directory>
+#<Directory />
+#    Options FollowSymLinks
+#    AllowOverride None
+#</Directory>
 
-#Include conf.d/*.conf
 #
 # Note that from this point forward you must specifically allow
 # particular features to be enabled - so if something's not working as
@@ -333,184 +314,38 @@ DocumentRoot "/home/ceu/htdocs/efiling/"
 #
 # This should be changed to whatever you set DocumentRoot to.
 #
-### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ###
+#<Directory "/var/www/html">
 
-  CookieTracking on
-  CookieDomain .{{ domain_name }}
-  
-  CookieExpires "25 months"
-  CookieName "chcookie"
-
-  SetEnv SECURE_SESSION_COOKIE 1
-
-  RewriteEngine on
-
-  RewriteCond %{HTTP_HOST} ^cy\.
-  RewriteRule (.*) https://{{ env_service_name }}.{{ domain_name }}$1?lang=cy [L]
-
-  #RewriteRule ^/$ /home/ceu/htdocs/efiling/handlers/welcome #prejointincs
-  RewriteRule ^/$ /home/ceu/htdocs/efiling/handlers/seclogin
-
-#  RewriteCond %{HTTPS} off
-#  RewriteRule (.*) https://{{ env_service_name }}.{{ domain_name }}/seclogin
-  #RewriteRule (.*) https://{{ env_service_name }}.{{ domain_name }}/seclogin
-
-  # Handle 'Common' Resource mapping
-  #
-  Alias /style/com/    "/home/ceu/htdocs/sitecommon/style/"
-  Alias /images/com/   "/home/ceu/htdocs/sitecommon/images/"
-  Alias /help/com/     "/home/ceu/htdocs/sitecommon/help/"
-  Alias /html/com/     "/home/ceu/htdocs/sitecommon/html/"
-  Alias /includes/com  "/home/ceu/htdocs/sitecommon/includes/"
-# web inc change below
-  Alias /scripts/com  "/home/ceu/htdocs/sitecommon/scripts/"
-  
-  # This regex is peculiar to avoid matching ../sitecommon/handlers as this
-  # needs executable permissions.
-  #
-  <Directory ~ "/home/ceu/htdocs/sitecommon/[sih][tmen].*/.*">
-    # Two levels deep.... (images/en/ for example)
-    #
-    Options Includes FollowSymLinks
-    Order allow,deny 
-    Allow from all
-  </Directory>
-  
-  <Directory ~ "/home/ceu/htdocs/sitecommon/[sih][tmen].*">
-    # One level deep.... (style/style.css for example)
-    #
-    Options Includes FollowSymLinks
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /ewfimages/ "/mnt/nfs/filings/recent_filings/"
-  <Directory "/mnt/nfs/filings/recent_filings/">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /ewfupload/ "/mnt/nfs/filings/upload/"
-   <Directory "/mnt/nfs/filings/upload/">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /errors/ "/home/ceu/htdocs/efiling/errors/"
-  <Directory "/home/ceu/htdocs/efiling/errors">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /images/ "/home/ceu/htdocs/efiling/images/"
-  <Directory "/home/ceu/htdocs/efiling/images">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /templates/ "/home/ceu/htdocs/efiling/templates/en/stdwf/"
-  <Directory "/home/ceu/htdocs/efiling/templates">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /style/ "/home/ceu/htdocs/efiling/static/style/"
-  Alias /efstyle/ "/home/ceu/htdocs/efiling/static/style/"
-  <Directory "/home/ceu/htdocs/efiling/static/style">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /html/ "/home/ceu/htdocs/efiling/static/html/"
-  <Directory "/home/ceu/htdocs/efiling/static/html">
-    SetHandler default-handler
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /help/ "/home/ceu/htdocs/efiling/static/help/"
-  <Directory "/home/ceu/htdocs/efiling/static/help">
-    SetHandler default-handler
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  Alias /hmrc-accounts/ "/home/ceu/htdocs/efiling/static/hmrc-accounts/"
-  <Directory "/home/ceu/htdocs/efiling/static/hmrc-accounts">
-    #SetHandler default-handler
-    Order allow,deny
-    Allow from all
-   <FilesMatch "\.(?i:pdf)$">
-        ForceType application/octet-stream
-        Header set Content-Disposition attachment
-    </FilesMatch>
-  </Directory>
-
-  Alias /scrs_plus/ "/home/ceu/htdocs/efiling/static/scrs_plus/"
-  <Directory "/home/ceu/htdocs/efiling/static/scrs_plus">
-      Order allow,deny
-      Allow from all
-  </Directory>
-
-  Alias /gov_uk/ "/home/ceu/htdocs/efiling/static/gov_uk/"
-  <Directory "/home/ceu/htdocs/efiling/static/gov_uk">
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-# Site Common Handlers
 #
-# web incs two new alias match below
-  AliasMatch ^.*/com-(.*)\.htc$ "/home/ceu/htdocs/sitecommon/style/$1.htc"
-  AliasMatch ^.*/(.*)\.htc$ "/home/ceu/htdocs/efiling/static/style/$1.htc"
-  AliasMatch ^/com-(.*) "/home/ceu/htdocs/sitecommon/handlers/$1"
-  <Directory  "/home/ceu/htdocs/sitecommon/handlers">
-    Options Indexes Includes FollowSymLinks +ExecCGI
-    Order allow,deny
-    SetHandler perl-script
-#'    PerlFixupHandler +Apache::DB
-    PerlResponseHandler ModPerl::Registry
-    PerlOptions +ParseHeaders
-    Allow from all
-    DirectoryIndex userlogin
-  </Directory>
+# Possible values for the Options directive are "None", "All",
+# or any combination of:
+#   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+#
+# Note that "MultiViews" must be named *explicitly* --- "Options All"
+# doesn't give it to you.
+#
+# The Options directive is both complicated and important.  Please see
+# http://httpd.apache.org/docs/2.2/mod/core.html#options
+# for more information.
+#
+#    Options Indexes FollowSymLinks
 
-  Alias /test-modperl "/home/ceu/htdocs/efiling/handlers/test-modperl"
-  <Directory "/home/ceu/htdocs/efiling/handlers">
-      AddDefaultCharset UTF-8
-      Options FollowSymLinks +ExecCGI Indexes
-      DirectoryIndex login
-      SetHandler perl-script
- #'     PerlFixupHandler +Apache::DB
-      PerlResponseHandler ModPerl::Registry
-      PerlOptions +ParseHeaders
-      Order allow,deny
-      Allow from all
-      PerlOutputFilterHandler Apache::CacheControlHeadersOutputFilter
-  </Directory>
+#
+# AllowOverride controls what directives may be placed in .htaccess files.
+# It can be "All", "None", or any combination of the keywords:
+#   Options FileInfo AuthConfig Limit
+#
+#    AllowOverride None
 
-    Alias / "/home/ceu/htdocs/efiling/handlers/"
-    <Directory "/home/ceu/htdocs/efiling/handlers">
-      AddDefaultCharset UTF-8
-      Options FollowSymLinks +ExecCGI Indexes
-      DirectoryIndex login
-      SetHandler perl-script
-#'      PerlFixupHandler +Apache::DB
-      PerlResponseHandler ModPerl::Registry
-      PerlOptions +ParseHeaders
-      Order allow,deny
-      Allow from all
-     # Additional Headers
-     # Header add Cache-Control "no-cache, no-store, must-revalidate"
-     # Header add Pragma "no-cache"
-     #FEB Changes
-      PerlOutputFilterHandler Apache::CacheControlHeadersOutputFilter
+#
+# Controls who can get stuff from this server.
+#
+#    Order allow,deny
+#    Allow from all
+#
+#</Directory>
 
-    DirectoryIndex welcome index
-  </Directory>
-
-### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ### EWF ###
-
+#
 # UserDir: The name of the directory that is appended onto a user's home
 # directory if a ~user request is received.
 #
@@ -528,11 +363,11 @@ DocumentRoot "/home/ceu/htdocs/efiling/"
     # of a username on the system (depending on home directory
     # permissions).
     #
-    UserDir disable
+    UserDir disabled
 
     #
     # To enable requests to /~user/ to serve the user's public_html
-    # directory, remove the "UserDir disable" line above, and uncomment
+    # directory, remove the "UserDir disabled" line above, and uncomment
     # the following line instead:
     # 
     #UserDir public_html
@@ -564,7 +399,7 @@ DocumentRoot "/home/ceu/htdocs/efiling/"
 # negotiated documents.  The MultiViews Option can be used for the 
 # same purpose, but it is much slower.
 #
-# DirectoryIndex login index index.html index.html.var
+DirectoryIndex index.html index.html.var
 
 #
 # AccessFileName: The name of the file to look for in each directory
@@ -580,6 +415,7 @@ AccessFileName .htaccess
 <Files ~ "^\.ht">
     Order allow,deny
     Deny from all
+    Satisfy All
 </Files>
 
 #
@@ -625,7 +461,7 @@ HostnameLookups Off
 # The default is on; turn this off if you serve from NFS-mounted 
 # filesystems.  On some systems, turning it off (regardless of
 # filesystem) can improve performance; for details, please see
-# http://httpd.apache.org/docs-2.0/mod/core.html#enablemmap
+# http://httpd.apache.org/docs/2.2/mod/core.html#enablemmap
 #
 #EnableMMAP off
 
@@ -634,10 +470,9 @@ HostnameLookups Off
 # used to deliver files (assuming that the OS supports it). 
 # The default is on; turn this off if you serve from NFS-mounted 
 # filesystems.  Please see
-# http://httpd.apache.org/docs-2.0/mod/core.html#enablesendfile
+# http://httpd.apache.org/docs/2.2/mod/core.html#enablesendfile
 #
 #EnableSendfile off
-#
 
 #
 # ErrorLog: The location of the error log file.
@@ -646,7 +481,7 @@ HostnameLookups Off
 # logged here.  If you *do* define an error logfile for a <VirtualHost>
 # container, that host's errors will be logged there and not here.
 #
-ErrorLog /var/log/httpd/ewf_error_log
+#ErrorLog logs/error_log
 
 #
 # LogLevel: Control the number of messages logged to the error_log.
@@ -659,10 +494,14 @@ LogLevel warn
 # The following directives define some format nicknames for use with
 # a CustomLog directive (see below).
 #
-LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{cookie}n\" %{pid}P" combined 
+LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{cookie}n\" %{pid}P" combined
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
 LogFormat "%{Referer}i -> %U" referer
 LogFormat "%{User-agent}i" agent
+
+# "combinedio" includes actual counts of actual bytes received (%I) and sent (%O); this
+# requires the mod_logio module to be loaded.
+#LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
 
 #
 # The location and format of the access logfile (Common Logfile Format).
@@ -671,30 +510,30 @@ LogFormat "%{User-agent}i" agent
 # define per-<VirtualHost> access logfiles, transactions will be
 # logged therein and *not* in this file.
 #
-# CustomLog logs/access_log common
-CustomLog /var/log/httpd/ewf_access_log combined
+#CustomLog logs/access_log common
 
 #
-# If you would like to have agent and referer logfiles, uncomment the
-# following directives.
+# If you would like to have separate agent and referer logfiles, uncomment
+# the following directives.
 #
 #CustomLog logs/referer_log referer
 #CustomLog logs/agent_log agent
 
 #
-# If you prefer a single logfile with access, agent, and referer information
-# (Combined Logfile Format) you can use the following directive.
+# For a single logfile with access, agent, and referer information
+# (Combined Logfile Format), use the following directive:
 #
 #CustomLog logs/access_log combined
 
 #
 # Optionally add a line containing the server version and virtual host
-# name to server-generated pages (error documents, FTP directory listings,
-# mod_status and mod_info output etc., but not CGI generated documents).
+# name to server-generated pages (internal error documents, FTP directory
+# listings, mod_status and mod_info output etc., but not CGI generated
+# documents or custom error documents).
 # Set to "EMail" to also include a mailto: link to the ServerAdmin.
 # Set to one of:  On | Off | EMail
 #
-ServerSignature Off
+ServerSignature On
 
 #
 # Aliases: Add here as many aliases as you need (with no limit). The format is 
@@ -709,29 +548,18 @@ ServerSignature Off
 # We include the /icons/ alias for FancyIndexed directory listings.  If you
 # do not use FancyIndexing, you may comment this out.
 #
-#Alias /icons/ "/var/www/icons/"
+Alias /icons/ "/var/www/icons/"
 
-#<Directory "/var/www/icons">
-#    Options Indexes MultiViews
-#    AllowOverride None
-#    Order allow,deny
-#    Allow from all
-#</Directory>
+<Directory "/var/www/icons">
+    Options Indexes MultiViews FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+</Directory>
 
 #
-# This should be changed to the ServerRoot/manual/.  The alias provides
-# the manual, even if you choose to move your DocumentRoot.  You may comment
-# this out if you do not care for the documentation.
-#
-#Alias /manual "/var/www/manual"
-
-#<Directory "/var/www/manual">
-#    Options Indexes FollowSymLinks MultiViews
-#    AllowOverride None
-#    Order allow,deny
-#    Allow from all
-#</Directory>
-
+# WebDAV module configuration section.
+# 
 <IfModule mod_dav_fs.c>
     # Location of the WebDAV lock database.
     DAVLockDB /var/lib/dav/lockdb
@@ -764,60 +592,56 @@ ServerSignature Off
 # clients where to look for the relocated document.
 # Example:
 # Redirect permanent /foo http://www.example.com/bar
-#Release_2_2012
-RedirectMatch 301 (.*)/welcome $1/seclogin
 
 #
 # Directives controlling the display of server-generated directory listings.
 #
 
 #
-# FancyIndexing is whether you want fancy directory indexing or standard.
-# VersionSort is whether files containing version numbers should be 
-# compared in the natural way, so that `apache-1.3.9.tar' is placed before
-# `apache-1.3.12.tar'.
+# IndexOptions: Controls the appearance of server-generated directory
+# listings.
 #
-IndexOptions FancyIndexing VersionSort NameWidth=*
+IndexOptions FancyIndexing VersionSort NameWidth=* HTMLTable Charset=UTF-8
 
 #
 # AddIcon* directives tell the server which icon to show for different
 # files or filename extensions.  These are only displayed for
 # FancyIndexed directories.
 #
-#AddIconByEncoding (CMP,/icons/compressed.gif) x-compress x-gzip
+AddIconByEncoding (CMP,/icons/compressed.gif) x-compress x-gzip
 
-#AddIconByType (TXT,/icons/text.gif) text/*
-#AddIconByType (IMG,/icons/image2.gif) image/*
-#AddIconByType (SND,/icons/sound2.gif) audio/*
-#AddIconByType (VID,/icons/movie.gif) video/*
+AddIconByType (TXT,/icons/text.gif) text/*
+AddIconByType (IMG,/icons/image2.gif) image/*
+AddIconByType (SND,/icons/sound2.gif) audio/*
+AddIconByType (VID,/icons/movie.gif) video/*
 
-#AddIcon /icons/binary.gif .bin .exe
-#AddIcon /icons/binhex.gif .hqx
-#AddIcon /icons/tar.gif .tar
-#AddIcon /icons/world2.gif .wrl .wrl.gz .vrml .vrm .iv
-#AddIcon /icons/compressed.gif .Z .z .tgz .gz .zip
-#AddIcon /icons/a.gif .ps .ai .eps
-#AddIcon /icons/layout.gif .html .shtml .htm .pdf
-#AddIcon /icons/text.gif .txt
-#AddIcon /icons/c.gif .c
-#AddIcon /icons/p.gif .pl .py
-#AddIcon /icons/f.gif .for
-#AddIcon /icons/dvi.gif .dvi
-#AddIcon /icons/uuencoded.gif .uu
-#AddIcon /icons/script.gif .conf .sh .shar .csh .ksh .tcl
-#AddIcon /icons/tex.gif .tex
-#AddIcon /icons/bomb.gif core
-#
-#AddIcon /icons/back.gif ..
-#AddIcon /icons/hand.right.gif README
-#AddIcon /icons/folder.gif ^^DIRECTORY^^
-#AddIcon /icons/blank.gif ^^BLANKICON^^
+AddIcon /icons/binary.gif .bin .exe
+AddIcon /icons/binhex.gif .hqx
+AddIcon /icons/tar.gif .tar
+AddIcon /icons/world2.gif .wrl .wrl.gz .vrml .vrm .iv
+AddIcon /icons/compressed.gif .Z .z .tgz .gz .zip
+AddIcon /icons/a.gif .ps .ai .eps
+AddIcon /icons/layout.gif .html .shtml .htm .pdf
+AddIcon /icons/text.gif .txt
+AddIcon /icons/c.gif .c
+AddIcon /icons/p.gif .pl .py
+AddIcon /icons/f.gif .for
+AddIcon /icons/dvi.gif .dvi
+AddIcon /icons/uuencoded.gif .uu
+AddIcon /icons/script.gif .conf .sh .shar .csh .ksh .tcl
+AddIcon /icons/tex.gif .tex
+AddIcon /icons/bomb.gif /core
+
+AddIcon /icons/back.gif ..
+AddIcon /icons/hand.right.gif README
+AddIcon /icons/folder.gif ^^DIRECTORY^^
+AddIcon /icons/blank.gif ^^BLANKICON^^
 
 #
 # DefaultIcon is which icon to show for files which do not have an icon
 # explicitly set.
 #
-#DefaultIcon /icons/unknown.gif
+DefaultIcon /icons/unknown.gif
 
 #
 # AddDescription allows you to place a short description after a file in
@@ -835,7 +659,6 @@ IndexOptions FancyIndexing VersionSort NameWidth=*
 #
 # HeaderName is the name of a file which should be prepended to
 # directory indexes. 
-#
 ReadmeName README.html
 HeaderName HEADER.html
 
@@ -844,15 +667,6 @@ HeaderName HEADER.html
 # and not include in the listing.  Shell-style wildcarding is permitted.
 #
 IndexIgnore .??* *~ *# HEADER* README* RCS CVS *,v *,t
-
-#
-# AddEncoding allows you to have certain browsers (Mosaic/X 2.1+) uncompress
-# information on the fly. Note: Not all browsers support this.
-# Despite the name similarity, the following Add* directives have nothing
-# to do with the FancyIndexing customization directives above.
-#
-AddEncoding x-compress Z
-AddEncoding x-gzip gz tgz
 
 #
 # DefaultLanguage and AddLanguage allows you to specify the language of 
@@ -884,39 +698,40 @@ AddEncoding x-gzip gz tgz
 # specifier. There is 'work in progress' to fix this and get
 # the reference data for rfc1766 cleaned up.
 #
-# Danish (da) - Dutch (nl) - English (en) - Estonian (et)
-# French (fr) - German (de) - Greek-Modern (el)
-# Italian (it) - Norwegian (no) - Norwegian Nynorsk (nn) - Korean (ko) 
-# Portugese (pt) - Luxembourgeois* (ltz)
-# Spanish (es) - Swedish (sv) - Catalan (ca) - Czech(cs)
-# Polish (pl) - Brazilian Portuguese (pt-br) - Japanese (ja)
-# Russian (ru) - Croatian (hr)
+# Catalan (ca) - Croatian (hr) - Czech (cs) - Danish (da) - Dutch (nl)
+# English (en) - Esperanto (eo) - Estonian (et) - French (fr) - German (de)
+# Greek-Modern (el) - Hebrew (he) - Italian (it) - Japanese (ja)
+# Korean (ko) - Luxembourgeois* (ltz) - Norwegian Nynorsk (nn)
+# Norwegian (no) - Polish (pl) - Portugese (pt)
+# Brazilian Portuguese (pt-BR) - Russian (ru) - Swedish (sv)
+# Simplified Chinese (zh-CN) - Spanish (es) - Traditional Chinese (zh-TW)
 #
+AddLanguage ca .ca
+AddLanguage cs .cz .cs
 AddLanguage da .dk
-AddLanguage nl .nl
+AddLanguage de .de
+AddLanguage el .el
 AddLanguage en .en
+AddLanguage eo .eo
+AddLanguage es .es
 AddLanguage et .et
 AddLanguage fr .fr
-AddLanguage de .de
 AddLanguage he .he
-AddLanguage el .el
+AddLanguage hr .hr
 AddLanguage it .it
 AddLanguage ja .ja
-AddLanguage pl .po
 AddLanguage ko .ko
-AddLanguage pt .pt
+AddLanguage ltz .ltz
+AddLanguage nl .nl
 AddLanguage nn .nn
 AddLanguage no .no
-AddLanguage pt-br .pt-br
-AddLanguage ltz .ltz
-AddLanguage ca .ca
-AddLanguage es .es
-AddLanguage sv .sv
-AddLanguage cs .cz .cs
+AddLanguage pl .po
+AddLanguage pt .pt
+AddLanguage pt-BR .pt-br
 AddLanguage ru .ru
+AddLanguage sv .sv
 AddLanguage zh-CN .zh-cn
 AddLanguage zh-TW .zh-tw
-AddLanguage hr .hr
 
 #
 # LanguagePriority allows you to give precedence to some languages
@@ -925,7 +740,7 @@ AddLanguage hr .hr
 # Just list the languages in decreasing order of preference. We have
 # more or less alphabetized them here. You probably want to change this.
 #
-LanguagePriority en da nl et fr de el it ja ko no pl pt pt-br ltz ca es sv tw
+LanguagePriority en ca cs da de el eo es et fr he hr it ja ko ltz nl nn no pl pt pt-BR ru sv zh-CN zh-TW
 
 #
 # ForceLanguagePriority allows you to serve a result page rather than
@@ -935,24 +750,14 @@ LanguagePriority en da nl et fr de el it ja ko no pl pt pt-br ltz ca es sv tw
 ForceLanguagePriority Prefer Fallback
 
 #
-# Specify a default charset for all pages sent out. This is
-# always a good idea and opens the door for future internationalisation
-# of your web site, should you ever want it. Specifying it as
-# a default does little harm; as the standard dictates that a page
-# is in iso-8859-1 (latin1) unless specified otherwise i.e. you
-# are merely stating the obvious. There are also some security
-# reasons in browsers, related to javascript and URL parsing
-# which encourage you to always set a default char set.
+# Specify a default charset for all content served; this enables
+# interpretation of all content as UTF-8 by default.  To use the 
+# default browser choice (ISO-8859-1), or to allow the META tags
+# in HTML content to override this choice, comment out this
+# directive:
 #
 AddDefaultCharset UTF-8
 
-#
-# Commonly used filename extensions to character sets. You probably
-# want to avoid clashes with the language extensions, unless you
-# are good at carefully testing your setup after each change.
-# See http://www.iana.org/assignments/character-sets for the
-# official list of charset names and their respective RFCs
-#
 AddCharset ISO-8859-1  .iso8859-1  .latin1
 AddCharset ISO-8859-2  .iso8859-2  .latin2 .cen
 AddCharset ISO-8859-3  .iso8859-3  .latin3
@@ -975,28 +780,32 @@ AddCharset ISO-10646-UCS-2 .ucs2
 AddCharset ISO-10646-UCS-4 .ucs4
 AddCharset UTF-8       .utf8
 
-# The set below does not map to a specific (iso) standard
-# but works on a fairly wide range of browsers. Note that
-# capitalization actually matters (it should not, but it
-# does for some browsers).
-#
-# See http://www.iana.org/assignments/character-sets
-# for a list of sorts. But browsers support few.
-#
-AddCharset GB2312      .gb2312 .gb 
-AddCharset utf-7       .utf7
-AddCharset utf-8       .utf8
-AddCharset big5        .big5 .b5
-AddCharset EUC-TW      .euc-tw
-AddCharset EUC-JP      .euc-jp
-AddCharset EUC-KR      .euc-kr
-AddCharset shift_jis   .sjis
-
 #
 # AddType allows you to add to or override the MIME configuration
 # file mime.types for specific file types.
 #
-AddType application/x-tar .tgz
+#AddType application/x-tar .tgz
+
+#
+# AddEncoding allows you to have certain browsers uncompress
+# information on the fly. Note: Not all browsers support this.
+# Despite the name similarity, the following Add* directives have nothing
+# to do with the FancyIndexing customization directives above.
+#
+#AddEncoding x-compress .Z
+#AddEncoding x-gzip .gz .tgz
+
+# If the AddEncoding directives above are commented-out, then you
+# probably should define those extensions to indicate media types:
+#
+AddType application/x-compress .Z
+AddType application/x-gzip .gz .tgz
+
+#
+#   MIME-types for downloading Certificates and CRLs
+#
+AddType application/x-x509-ca-cert .crt
+AddType application/x-pkcs7-crl    .crl
 
 #
 # AddHandler allows you to map certain file extensions to "handlers":
@@ -1006,17 +815,12 @@ AddType application/x-tar .tgz
 # To use CGI scripts outside of ScriptAliased directories:
 # (You will also need to add "ExecCGI" to the "Options" directive.)
 #
-#AddHandler cgi-script .cgi
+AddHandler cgi-script .cgi
 
 #
 # For files that include their own HTTP headers:
 #
-AddHandler send-as-is asis
-
-#
-# For server-parsed imagemap files:
-#
-AddHandler imap-file map
+#AddHandler send-as-is asis
 
 #
 # For type maps (negotiated resources):
@@ -1025,16 +829,14 @@ AddHandler imap-file map
 #
 AddHandler type-map var
 
+#
 # Filters allow you to process content before it is sent to the client.
 #
 # To parse .shtml files for server-side includes (SSI):
 # (You will also need to add "Includes" to the "Options" directive.)
 #
-# added as per ewfpreprodtest for web incs
 AddType text/html .shtml
 AddOutputFilter INCLUDES .shtml
-#web inc change below
-AddType text/x-component .htc
 
 #
 # Action lets you define media types that will execute a script whenever
@@ -1056,14 +858,14 @@ AddType text/x-component .htc
 #
 
 #
-# Putting this all together, we can Internationalize error responses.
+# Putting this all together, we can internationalize error responses.
 #
 # We use Alias to redirect any /error/HTTP_<error>.html.var response to
 # our collection of by-error message multi-language collections.  We use 
 # includes to substitute the appropriate text.
 #
 # You can modify the messages' appearance without changing any of the
-# default HTTP_<error>.html.var files by adding the line;
+# default HTTP_<error>.html.var files by adding the line:
 #
 #   Alias /error/include/ "/your/include/path/"
 #
@@ -1072,7 +874,7 @@ AddType text/x-component .htc
 # copying them to /your/include/path/, even on a per-VirtualHost basis.
 #
 
-#Alias /error/ "/var/www/error/"
+Alias /error/ "/var/www/error/"
 
 <IfModule mod_negotiation.c>
 <IfModule mod_include.c>
@@ -1098,7 +900,7 @@ AddType text/x-component .htc
 #    ErrorDocument 412 /error/HTTP_PRECONDITION_FAILED.html.var
 #    ErrorDocument 413 /error/HTTP_REQUEST_ENTITY_TOO_LARGE.html.var
 #    ErrorDocument 414 /error/HTTP_REQUEST_URI_TOO_LARGE.html.var
-#    ErrorDocument 415 /error/HTTP_SERVICE_UNAVAILABLE.html.var
+#    ErrorDocument 415 /error/HTTP_UNSUPPORTED_MEDIA_TYPE.html.var
 #    ErrorDocument 500 /error/HTTP_INTERNAL_SERVER_ERROR.html.var
 #    ErrorDocument 501 /error/HTTP_NOT_IMPLEMENTED.html.var
 #    ErrorDocument 502 /error/HTTP_BAD_GATEWAY.html.var
@@ -1126,13 +928,17 @@ BrowserMatch "JDK/1\.0" force-response-1.0
 # Same deal with Apple's DAV filesystem and Gnome VFS support for DAV.
 #
 BrowserMatch "Microsoft Data Access Internet Publishing Provider" redirect-carefully
+BrowserMatch "MS FrontPage" redirect-carefully
 BrowserMatch "^WebDrive" redirect-carefully
-BrowserMatch "^WebDAVFS/1.[012]" redirect-carefully
-BrowserMatch "^gnome-vfs" redirect-carefully
+BrowserMatch "^WebDAVFS/1.[0123]" redirect-carefully
+BrowserMatch "^gnome-vfs/1.0" redirect-carefully
+BrowserMatch "^XML Spy" redirect-carefully
+BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 
 #
-# Allow server status reports, with the URL of http://servername/server-status
-# Change the ".your-domain.com" to match your domain to enable.
+# Allow server status reports generated by mod_status,
+# with the URL of http://servername/server-status
+# Change the ".example.com" to match your domain to enable.
 #
 <Location /server-status>
     SetHandler server-status
@@ -1146,12 +952,12 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 #  http://servername/server-info (requires that mod_info.c be loaded).
 # Change the ".example.com" to match your domain to enable.
 #
-<Location /server-info>
-    SetHandler server-info
-    Order deny,allow
-    Deny from all
-    Allow from {{ server_status_allow_from_list}}
-</Location>
+#<Location /server-info>
+#    SetHandler server-info
+#    Order deny,allow
+#    Deny from all
+#    Allow from .example.com
+#</Location>
 
 #
 # Proxy Server directives. Uncomment the following lines to
@@ -1175,7 +981,7 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 
 #
 # To enable a cache of proxied content, uncomment the following lines.
-# See http://httpd.apache.org/docs-2.0/mod/mod_cache.html for more details.
+# See http://httpd.apache.org/docs/2.2/mod/mod_cache.html for more details.
 #
 #<IfModule mod_disk_cache.c>
 #   CacheEnable disk /
@@ -1194,7 +1000,7 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 # IP addresses. This is indicated by the asterisks in the directives below.
 #
 # Please see the documentation at 
-# <URL:http://httpd.apache.org/docs-2.0/vhosts/>
+# <URL:http://httpd.apache.org/docs/2.2/vhosts/>
 # for further details before you try to setup virtual hosts.
 #
 # You may use the command line option '-S' to verify your virtual host
@@ -1204,6 +1010,11 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 # Use name-based virtual hosting.
 #
 #NameVirtualHost *:80
+#
+# NOTE: NameVirtualHost cannot be used without a port specifier 
+# (e.g. :80) if mod_ssl is being used, due to the nature of the
+# SSL protocol.
+#
 
 #
 # VirtualHost example:
@@ -1211,7 +1022,7 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 # The first VirtualHost section is used for requests without a known
 # server name.
 #
-#<VirtualHost *>
+#<VirtualHost *:80>
 #    ServerAdmin webmaster@dummy-host.example.com
 #    DocumentRoot /www/docs/dummy-host.example.com
 #    ServerName dummy-host.example.com
@@ -1219,4 +1030,91 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 #    CustomLog logs/dummy-host.example.com-access_log common
 #</VirtualHost>
 
-TraceEnable off
+### CHCC ### CHCC ### CHCC ### CHCC ### CHCC ### CHCC ###
+
+DocumentRoot "/home/ceu/htdocs/ce/"
+
+RewriteEngine on
+RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
+
+
+  Alias /style/com/ "/home/ceu/htdocs/sitecommon/style/"
+  Alias /images/com/ "/home/ceu/htdocs/sitecommon/images/"
+  Alias /style/ "/home/ceu/htdocs/ce/static/style/"
+  <Directory "/home/ceu/htdocs/ce/static/style">
+    Order allow,deny
+    Allow from all
+  </Directory>
+
+  Alias /images/ "/home/ceu/htdocs/ce/images/"
+  <Directory "/home/ceu/htdocs/ce/images">
+     Order allow,deny
+     Allow from all
+  </Directory>
+
+  Alias /html/ "/home/ceu/htdocs/ce/static/html/"
+  <Directory "/home/ceu/htdocs/ce/static/html">
+     Order allow,deny
+     Allow from all
+  </Directory>
+
+  Alias /templates/ "/home/ceu/htdocs/ce/static/templates/"
+  <Directory "/home/ceu/htdocs/ce/static/templates">
+     Order allow,deny
+     Allow from all
+  </Directory>
+
+  Alias /search/ "/home/ceu/htdocs/ce/search/"
+  <Directory "/home/ceu/htdocs/ce/search/">
+     AddDefaultCharset ISO-8859-1
+     Options Indexes Includes FollowSymLinks +ExecCGI
+     Order allow,deny
+    Allow from all
+     DirectoryIndex index.html
+  </Directory>
+
+  Alias /knowledge/ "/home/ceu/htdocs/ce/static/knowledge/"
+  <Directory "/home/ceu/htdocs/ce/static/knowledge/">
+     AddDefaultCharset ISO-8859-1
+     Options Indexes FollowSymLinks
+     Order allow,deny
+     Allow from all
+  </Directory>
+
+  Alias /mis/ "/mnt/nfs/ceu/static/"
+  <Directory "/mnt/nfs/ceu/static/">
+     Order allow,deny
+     Allow from all
+  </Directory>
+
+  Alias /mount/ "/mnt/nfs/ceu/static/html/"
+
+  <Location /ais>
+     Order allow,deny
+     Allow from all
+  </Location>
+
+  Alias /ais /mnt/nfs/ceu/online
+  Alias /htdig /home/ceu/htdocs/ce/search
+
+  # Project handlers
+  #
+  Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
+  <Directory "/home/ceu/htdocs/ce/handlers">
+    Options Indexes Includes FollowSymLinks +ExecCGI
+    Order allow,deny
+    SetHandler perl-script
+    PerlResponseHandler ModPerl::Registry
+    PerlOptions +ParseHeaders
+    PerlSendHeader On
+    Header add Cache-Control "no-cache, no-store, must-revalidate"
+    Header add Pragma "no-cache"
+    Allow from all
+    DirectoryIndex login.cgi
+  </Directory>
+
+ErrorLog /var/log/httpd/ceu_error_log
+CustomLog /var/log/httpd/ceu_access_log combined
+
+
+### CHCC ### CHCC ### CHCC ### CHCC ### CHCC ### CHCC ###

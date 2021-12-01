@@ -1,32 +1,24 @@
 ---
-  - name: Deploy CEU Backend artifact
+  - name: Deploy CEU Frontend artifact
     hosts: localhost
     gather_facts: true
     collections: 
       - ch_collections.base
     vars:
       ansible_python_interpreter: /usr/local/bin/python3.6
-      application_name: "ewf-backend"
-      application_config_name: "ceu-backend"
+      application_name: "ceu"
+      application_config_name: "ceu-frontend"
       home_dir: "/home/ceu"
       directories:
-        - "DATA" 
+        - "DATA"
         - "MODULES"
-        - "bcdbackend"
-        - "chd3backend"
-        - "efbackend"
-        - "conf"
+        - "htdocs"
+        - "supportscripts"
       config_files:
-        - "BEP"
-      cups_config_files:
-        - "cupsd"
-        - "printers"
-      cups_printer_descs:
-        - "avpcovlive"
-        - "avpinplive"
-        - "ccopies"
+        - "CE"
     roles:
-      - { role: /root/roles/nfs_mounts }
+      - role: /root/roles/nfs_mounts
+        when: mounts is defined
       - name: ch_collections.base.cloudwatch_agent_config
         when: cw_log_files is defined
     tasks:
@@ -101,40 +93,8 @@
           - "/tmp/{{ application_name }}-{{ version }}"
           - "/tmp/{{ application_name }}-{{ version }}.zip"
 
-      - name: Make sure Apache is disabled and stopped
+      - name: Make sure htdig search engine is installed
         service:
-          name: "httpd"
-          state: stopped
-          enabled: no
-
-      - name: Download CUPS configuration files
-        aws_s3:
-          bucket: "{{ s3_bucket_configs }}"
-          object: "chl-{{ application_config_name }}-configs/{{ heritage_environment }}/cups/{{ item }}.conf"
-          dest: "/etc/cups/{{ item }}.conf"
-          mode: get
-        loop: "{{ cups_config_files }}"
-
-      - name: Set CUPS configuration file ownership and permissions
-        ansible.builtin.file:
-          path: "/etc/cups/{{ item }}.conf"
-          owner: root
-          group: lp
-          mode: 0640
-        loop: "{{ cups_config_files }}"
-
-      - name: Download CUPS printer descriptions
-        aws_s3:
-          bucket: "{{ s3_bucket_configs }}"
-          object: "chl-{{ application_config_name }}-configs/{{ heritage_environment }}/cups/{{ item }}.ppd"
-          dest: "/etc/cups/ppd/{{ item }}.ppd"
-          mode: get
-        loop: "{{ cups_printer_descs }}"
-
-      - name: Set CUPS printer description ownership and permissions
-        ansible.builtin.file:
-          path: "/etc/cups/ppd/{{ item }}.ppd"
-          owner: root
-          group: root
-          mode: 0644
-        loop: "{{ cups_printer_descs }}"
+          name: "htdig"
+          state: present
+          enabled: yes
