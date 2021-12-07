@@ -60,6 +60,15 @@
           mode: preserve
           remote_src: yes
         loop: "{{ directories }}"
+
+      - name: Recursively set mode of publ_cust directory and files
+        ansible.builtin.file:
+          path: "{{ home_dir }}/publ_cust"
+          owner: "{{ home_dir | basename }}"
+          group: chlservices
+          mode: 0755
+          state: directory
+          recurse: yes
       
       - name: Make sure config and scratch directories exist
         file:
