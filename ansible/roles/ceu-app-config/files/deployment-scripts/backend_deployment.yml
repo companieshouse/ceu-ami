@@ -16,6 +16,7 @@
         - "chd3backend"
         - "efbackend"
         - "conf"
+        - "publ_cust"
       config_files:
         - "BEP"
       cups_config_files:
