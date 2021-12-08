@@ -93,7 +93,6 @@
           - "/tmp/{{ application_name }}-{{ version }}.zip"
 
       - name: Make sure htdig search engine is installed
-        service:
-          name: "htdig"
+        ansible.builtin.package:
+          name: htdig
           state: present
-          enabled: yes
