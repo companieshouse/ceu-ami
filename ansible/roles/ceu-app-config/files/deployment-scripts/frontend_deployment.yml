@@ -93,6 +93,8 @@
           - "/tmp/{{ application_name }}-{{ version }}.zip"
 
       - name: Make sure htdig search engine is installed
+        vars:
+          ansible_python_interpreter: /usr/bin/python2.6
         ansible.builtin.package:
           name: htdig
           state: present
