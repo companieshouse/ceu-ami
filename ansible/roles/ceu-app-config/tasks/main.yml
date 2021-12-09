@@ -67,6 +67,22 @@
     regexp: "^{{ item.key }} ="
   with_items: "{{ postfix_net_config }}"
 
+- name: Enable crontab for CEU user
+  lineinfile:
+    dest: "/etc/cron.allow"
+    line: "ceu"
+    regexp: "^ceu"
+
+- name: Allow ceu to use apachectl 
+  copy:
+    dest: "/etc/sudoers.d/ceu"
+    content: |
+      # CEU user
+      ceu ALL=(ALL) NOPASSWD:/usr/sbin/apachectl
+
+- name: Disable password expiry for CEU user so it doesnt break cron
+  command: "chage -m 0 -M 99999 -I -1 -E -1 ceu"
+
 - name: Copy deployment scripts to server for later use
   vars:
     ansible_python_interpreter: /usr/bin/python2.6
