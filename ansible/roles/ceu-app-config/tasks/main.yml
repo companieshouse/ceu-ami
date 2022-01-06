@@ -50,7 +50,7 @@
   loop:
     - etc/httpd/conf/httpd.conf.j2
     - etc/httpd/conf/ceu_startup.pl
-    - etc/httpd/conf.d/perl.conf
+    - etc/httpd/conf.d/ceu_perl.conf
     
 - name: Update Postfix configuration for mail relay (existing commented lines)
   lineinfile:
