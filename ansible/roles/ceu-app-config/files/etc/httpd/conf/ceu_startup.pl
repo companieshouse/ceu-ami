@@ -2,7 +2,7 @@ warn "Executing ceu_startup.pl...\n";
 sleep 1;
 
 # Extend @INC if needed
-use lib qw(/home/ceu/MODULES);
+use lib qw(/home/ceu/MODULES /home/ceu/config);
 
 warn @INC;
 # Make sure we are in a sane environment.

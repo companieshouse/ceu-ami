@@ -1037,7 +1037,8 @@ DocumentRoot "/home/ceu/htdocs/ce/"
 RewriteEngine on
 RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
 
-
+  # Project handlers
+  
   Alias /style/com/ "/home/ceu/htdocs/sitecommon/style/"
   Alias /images/com/ "/home/ceu/htdocs/sitecommon/images/"
   Alias /style/ "/home/ceu/htdocs/ce/static/style/"
@@ -1058,12 +1059,13 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
      Allow from all
   </Directory>
 
-  Alias /templates/ "/home/ceu/htdocs/ce/static/templates/"
-  <Directory "/home/ceu/htdocs/ce/static/templates">
+  Alias /templates/ "/home/ceu/htdocs/ce/templates/"
+  <Directory "/home/ceu/htdocs/ce/templates">
      Order allow,deny
      Allow from all
   </Directory>
 
+  Alias /htdig /home/ceu/htdocs/ce/search
   Alias /search/ "/home/ceu/htdocs/ce/search/"
   <Directory "/home/ceu/htdocs/ce/search/">
      AddDefaultCharset ISO-8859-1
@@ -1087,18 +1089,11 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
      Allow from all
   </Directory>
 
-  Alias /mount/ "/mnt/nfs/ceu/static/html/"
-
   <Location /ais>
      Order allow,deny
      Allow from all
   </Location>
 
-  Alias /ais /mnt/nfs/ceu/online
-  Alias /htdig /home/ceu/htdocs/ce/search
-
-  # Project handlers
-  #
   Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
   <Directory "/home/ceu/htdocs/ce/handlers">
     Options Indexes Includes FollowSymLinks +ExecCGI
@@ -1112,6 +1107,10 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
     Allow from all
     DirectoryIndex login.cgi
   </Directory>
+  
+  Alias /mount/ "/mnt/nfs/ceu/static/html/"
+  Alias /ais    "/mnt/nfs/ceu/online"
+
 
 ErrorLog /var/log/httpd/ceu_error_log
 CustomLog /var/log/httpd/ceu_access_log combined
