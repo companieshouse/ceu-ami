@@ -1038,21 +1038,7 @@ RewriteEngine on
 RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
 
   # Project handlers
-  #
-  Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
-  <Directory "/home/ceu/htdocs/ce/handlers">
-    Options Indexes Includes FollowSymLinks +ExecCGI
-    Order allow,deny
-    SetHandler perl-script
-    PerlResponseHandler ModPerl::Registry
-    PerlOptions +ParseHeaders
-    PerlSendHeader On
-    Header add Cache-Control "no-cache, no-store, must-revalidate"
-    Header add Pragma "no-cache"
-    Allow from all
-    DirectoryIndex login.cgi
-  </Directory>
-
+  
   Alias /style/com/ "/home/ceu/htdocs/sitecommon/style/"
   Alias /images/com/ "/home/ceu/htdocs/sitecommon/images/"
   Alias /style/ "/home/ceu/htdocs/ce/static/style/"
@@ -1108,6 +1094,20 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
      Allow from all
   </Location>
 
+  Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
+  <Directory "/home/ceu/htdocs/ce/handlers">
+    Options Indexes Includes FollowSymLinks +ExecCGI
+    Order allow,deny
+    SetHandler perl-script
+    PerlResponseHandler ModPerl::Registry
+    PerlOptions +ParseHeaders
+    PerlSendHeader On
+    Header add Cache-Control "no-cache, no-store, must-revalidate"
+    Header add Pragma "no-cache"
+    Allow from all
+    DirectoryIndex login.cgi
+  </Directory>
+  
   Alias /mount/ "/mnt/nfs/ceu/static/html/"
   Alias /ais    "/mnt/nfs/ceu/online"
 
