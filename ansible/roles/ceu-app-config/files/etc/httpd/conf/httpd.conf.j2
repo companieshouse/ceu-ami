@@ -218,7 +218,7 @@ LoadModule version_module modules/mod_version.so
 #
 # Load config files from the config directory "/etc/httpd/conf.d".
 #
-Include conf.d/perl.conf
+Include conf.d/ceu_perl.conf
 # Include conf.d/ssl.conf
 
 #
@@ -1037,6 +1037,21 @@ DocumentRoot "/home/ceu/htdocs/ce/"
 RewriteEngine on
 RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
 
+  # Project handlers
+  #
+  Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
+  <Directory "/home/ceu/htdocs/ce/handlers">
+    Options Indexes Includes FollowSymLinks +ExecCGI
+    Order allow,deny
+    SetHandler perl-script
+    PerlResponseHandler ModPerl::Registry
+    PerlOptions +ParseHeaders
+    PerlSendHeader On
+    Header add Cache-Control "no-cache, no-store, must-revalidate"
+    Header add Pragma "no-cache"
+    Allow from all
+    DirectoryIndex login.cgi
+  </Directory>
 
   Alias /style/com/ "/home/ceu/htdocs/sitecommon/style/"
   Alias /images/com/ "/home/ceu/htdocs/sitecommon/images/"
@@ -1058,12 +1073,13 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
      Allow from all
   </Directory>
 
-  Alias /templates/ "/home/ceu/htdocs/ce/static/templates/"
-  <Directory "/home/ceu/htdocs/ce/static/templates">
+  Alias /templates/ "/home/ceu/htdocs/ce/templates/"
+  <Directory "/home/ceu/htdocs/ce/templates">
      Order allow,deny
      Allow from all
   </Directory>
 
+  Alias /htdig /home/ceu/htdocs/ce/search
   Alias /search/ "/home/ceu/htdocs/ce/search/"
   <Directory "/home/ceu/htdocs/ce/search/">
      AddDefaultCharset ISO-8859-1
@@ -1087,31 +1103,14 @@ RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
      Allow from all
   </Directory>
 
-  Alias /mount/ "/mnt/nfs/ceu/static/html/"
-
   <Location /ais>
      Order allow,deny
      Allow from all
   </Location>
 
-  Alias /ais /mnt/nfs/ceu/online
-  Alias /htdig /home/ceu/htdocs/ce/search
+  Alias /mount/ "/mnt/nfs/ceu/static/html/"
+  Alias /ais    "/mnt/nfs/ceu/online"
 
-  # Project handlers
-  #
-  Alias /ce/ "/home/ceu/htdocs/ce/handlers/"
-  <Directory "/home/ceu/htdocs/ce/handlers">
-    Options Indexes Includes FollowSymLinks +ExecCGI
-    Order allow,deny
-    SetHandler perl-script
-    PerlResponseHandler ModPerl::Registry
-    PerlOptions +ParseHeaders
-    PerlSendHeader On
-    Header add Cache-Control "no-cache, no-store, must-revalidate"
-    Header add Pragma "no-cache"
-    Allow from all
-    DirectoryIndex login.cgi
-  </Directory>
 
 ErrorLog /var/log/httpd/ceu_error_log
 CustomLog /var/log/httpd/ceu_access_log combined
