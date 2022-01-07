@@ -98,3 +98,9 @@
         ansible.builtin.package:
           name: htdig
           state: present
+    
+      - name: Enable and start httpd to complete deployment
+        ansible.builtin.service:
+          name: httpd
+          state: started
+          enabled: yes
