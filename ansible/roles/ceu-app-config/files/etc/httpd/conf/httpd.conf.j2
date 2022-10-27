@@ -1034,6 +1034,12 @@ BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 
 DocumentRoot "/home/ceu/htdocs/ce/"
 
+# Disable indexes by default
+Options -Indexes
+
+# Re-direct requests from / to login
+RedirectMatch ^/$ /ce/login.cgi
+
 RewriteEngine on
 RewriteRule ^/ce/$ /home/ceu/htdocs/ce/handlers/login.cgi
 
