@@ -2,7 +2,7 @@
 collections:
   - name: git@github.com:companieshouse/ansible-collections.git#/ch_collections/base/
     type: git
-    version: 0.1.36
+    version: 0.1.126
   - name: git@github.com:companieshouse/ansible-collections.git#/ch_collections/heritage_services
     version: 0.1.69
     type: git
