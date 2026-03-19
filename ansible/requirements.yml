@@ -1,8 +1,9 @@
 ---
 roles:
-  - name: git@github.com:companieshouse/ansible-collection-security.git#/roles/clamav_ng
+  - name: clamav_ng
+    src: git@github.com:companieshouse/ansible-collection-security.git
+    scm: git
     version: 1.0.20
-    type: git
   
 collections:
   - name: git@github.com:companieshouse/ansible-collections.git#/ch_collections/base/
