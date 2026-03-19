@@ -61,6 +61,18 @@ variable "aws_s3_release_bucket" {
   description = "Bucket that contains any artifacts required to complete the build process, will be passed to Ansible"
 }
 
+variable "force_delete_snapshot" {
+  type        = bool
+  default     = false
+  description = "Delete snapshots associated with AMIs, which have been deregistered by force_deregister"
+}
+
+variable "force_deregister" {
+  type        = bool
+  default     = false
+  description = "Deregister an existing AMI if one with the same name already exists"
+}
+
 variable "playbook_file_path" {
   type        = string
   default     = "../ansible/playbook.yml"
