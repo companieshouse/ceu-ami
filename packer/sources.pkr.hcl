@@ -54,7 +54,7 @@ source "amazon-ebs" "builder" {
   }
 
   run_volume_tags = {
-    Builder = "packer-{{packer_version}}"
+    Builder = "packer-builder"
     Name    = "${var.ami_name_prefix}-${var.version}"
   }
 
