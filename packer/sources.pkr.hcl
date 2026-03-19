@@ -21,12 +21,6 @@ source "amazon-ebs" "builder" {
     volume_type           = "gp3"
   }
 
-  metadata_options {
-    http_endpoint               = "enabled"
-    http_tokens                 = "optional"
-    http_put_response_hop_limit = 1
-  }
-
   security_group_filter {
     filters = {
       "group-name": "packer-builders-${var.aws_region}"
