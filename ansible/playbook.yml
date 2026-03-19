@@ -11,6 +11,7 @@
   vars:
     ansible_python_interpreter: /usr/local/bin/python3.6
   roles:
+    - clamav_ng
     - ch_collections.heritage_services.heritage_frontend_base
     - ch_collections.heritage_services.nfs
     - ceu-app-config

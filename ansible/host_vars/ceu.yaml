@@ -85,3 +85,6 @@ nrpe_command:
   check_users:
     script: check_users
     option: $ARG1$
+
+## clamav_ng Variables
+clamav_ng_freshclam_privatemirror: clamav-mirror.sharedservices.aws.internal
