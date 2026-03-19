@@ -14,3 +14,9 @@
     - ch_collections.heritage_services.heritage_frontend_base
     - ch_collections.heritage_services.nfs
     - ceu-app-config
+
+- hosts: ceu
+  become: true
+  gather_facts: yes
+  roles:
+    - companieshouse.security.clamav_ng
