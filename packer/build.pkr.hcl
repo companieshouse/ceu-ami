@@ -9,8 +9,7 @@ build {
     extra_arguments = [
       "-e", "aws_region=${var.aws_region}",
       "-e", "s3_bucket=${var.aws_s3_release_bucket}",
-      "-e", "nagios_api_key=${var.nagios_api_key}",
-      "--scp-extra-args", "'-O'"
+      "-e", "nagios_api_key=${var.nagios_api_key}"
     ]
   }
 
