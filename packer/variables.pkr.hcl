@@ -3,6 +3,12 @@ variable "ami_account_ids" {
   description = "A list of account IDs that have access to launch the resulting AMI(s)"
 }
 
+variable "ami_regions" {
+  type        = list(string)
+  default     = ["eu-west-2"]
+  description = "A list of AWS regions that the AMI will be made available in"
+}
+
 variable "ami_name_prefix" {
   type        = string
   default     = "ceu"
@@ -17,7 +23,7 @@ variable "ansible_host_alias" {
 
 variable "aws_instance_type" {
   type        = string
-  default     = "t2.small"
+  default     = "t2.medium"
   description = "The EC2 instance type used when building the AMI"
 }
 
@@ -35,7 +41,7 @@ variable "aws_source_ami_filter_name" {
 
 variable "aws_source_ami_filter_version" {
   type        = string
-  default     = "*"
+  default     = "0.1.46"
   description = "The source AMI filter version. Used to enable control of version of source AMI from CI triggers."
 }
 
@@ -79,6 +85,12 @@ variable "root_volume_iops" {
   description = "The EC2 instance root volume IOPS"
 }
 
+variable "ssh_clear_authorized_keys" {
+  type        = bool
+  default     = true
+  description = "Defines whether the authorized_keys file should be cleared, post-build"
+}
+
 variable "ssh_private_key_file" {
   type        = string
   default     = "/home/packer/.ssh/packer-builder"
@@ -94,12 +106,6 @@ variable "ssh_username" {
 variable "version" {
   type        = string
   description = "The semantic version number for the AMI; the version string will be appended automatically to the name tags added to the resulting AMI and snapshot(s)"
-}
-
-variable "encrypt_boot" {
-  type        = bool
-  default     = false
-  description = "Whether to encrypt the root volume of the AMI (and instances created from it)"
 }
 
 variable "kms_key_id" {
