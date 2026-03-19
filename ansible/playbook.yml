@@ -4,7 +4,6 @@
   gather_facts: yes
   roles:
     - ch_collections.base.nagios_nrpe_client
-    - clamav_ng
 
 - hosts: ceu
   become: true
@@ -15,3 +14,9 @@
     - ch_collections.heritage_services.heritage_frontend_base
     - ch_collections.heritage_services.nfs
     - ceu-app-config
+
+- hosts: ceu
+  become: true
+  gather_facts: yes
+  roles:
+    - clamav_ng
