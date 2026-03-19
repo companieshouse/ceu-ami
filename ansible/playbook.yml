@@ -19,4 +19,4 @@
   become: true
   gather_facts: yes
   roles:
-    - clamav_ng
+    - companieshouse.security.clamav_ng
