@@ -9,4 +9,4 @@ collections:
   - name: ansible.posix
     version: 1.5.4
   - name: companieshouse.security
-    version: 1.0.20
+    version: 1.0.21
