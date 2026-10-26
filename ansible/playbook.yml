@@ -1,9 +1,4 @@
 ---  
-- hosts: ceu
-  become: true
-  gather_facts: yes
-  roles:
-    - ch_collections.base.nagios_nrpe_client
 
 - hosts: ceu
   become: true
